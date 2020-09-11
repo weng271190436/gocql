@@ -179,10 +179,18 @@ func NewSession(cfg ClusterConfig) (*Session, error) {
 }
 
 func (s *Session) init() error {
+	for _, host := range s.cfg.Hosts {
+		fmt.Println("printing host:", host)
+	}
 	hosts, err := addrsToHosts(s.cfg.Hosts, s.cfg.Port)
 	if err != nil {
 		return err
 	}
+
+	for _, host := range hosts {
+		fmt.Println("printing host after addrsToHosts:", host.connectAddress)
+	}
+
 	s.ring.endpoints = hosts
 
 	if !s.cfg.disableControlConn {
@@ -210,12 +218,18 @@ func (s *Session) init() error {
 			if err != nil {
 				return err
 			}
+			for _, host := range newHosts {
+				fmt.Println("printing new hosts:", host.connectAddress)
+			}
 			s.policy.SetPartitioner(partitioner)
 			filteredHosts := make([]*HostInfo, 0, len(newHosts))
 			for _, host := range newHosts {
 				if !s.cfg.filterHost(host) {
 					filteredHosts = append(filteredHosts, host)
 				}
+			}
+			for _, host := range filteredHosts {
+				fmt.Println("printing filtered hosts:", host.connectAddress)
 			}
 			hosts = append(hosts, filteredHosts...)
 		}
@@ -228,6 +242,7 @@ func (s *Session) init() error {
 
 	hosts = hosts[:0]
 	for _, host := range hostMap {
+		fmt.Println("adding host", host.connectAddress)
 		host = s.ring.addOrUpdate(host)
 		if s.cfg.filterHost(host) {
 			continue
@@ -246,6 +261,7 @@ func (s *Session) init() error {
 		v.AddHosts(hosts)
 	} else {
 		for _, host := range hosts {
+			fmt.Println("bulk adding host", host.connectAddress)
 			s.policy.AddHost(host)
 		}
 	}

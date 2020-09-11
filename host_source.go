@@ -587,6 +587,7 @@ func (r *ringDescriber) getClusterPeerInfo() ([]*HostInfo, error) {
 	}
 
 	for _, row := range rows {
+		fmt.Println("row from system.peers table:", row)
 		// extract all available info about the peer
 		host, err := r.session.hostInfoFromMap(row, &HostInfo{port: r.session.cfg.Port})
 		if err != nil {
@@ -621,6 +622,10 @@ func (r *ringDescriber) GetHosts() ([]*HostInfo, string, error) {
 	hosts, err := r.getClusterPeerInfo()
 	if err != nil {
 		return r.prevHosts, r.prevPartitioner, err
+	}
+
+	for _, host := range hosts {
+		fmt.Println("printing cluster peers:", host.connectAddress)
 	}
 
 	var partitioner string
